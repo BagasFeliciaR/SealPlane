@@ -1,25 +1,31 @@
 name: Deploy Plane
+
 on:
-push:
-branches:
-- main
+  push:
+    branches:
+      - main
+
 jobs:
-deploy:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout Code
-uses: actions/checkout@v2
-- name: Set up SSH
-run: |
-echo "${{ secrets.EC2_SSH_KEY }}" > plane.pem
-chmod 600 key.pem
-- name: Upload Files to EC2
-run: |
-scp -i key.pem -r . ec2-user@100.24.85.118:/home/ec2-user/plane-selfhost
-- name: Deploy to EC2
-run: |
-ssh -i key.pem ec2-user@100.24.85.118 "
-cd /home/ec2-user/plane-selfhost &&
-docker-compose pull &&
-docker-compose up -d
-"
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > plane.pem
+          chmod 600 plane.pem  # Pastikan nama file sama dengan yang Anda sebutkan di langkah berikutnya
+
+      - name: Upload Files to EC2
+        run: |
+          scp -i plane.pem -r . ec2-user@100.24.85.118:/home/ec2-user/plane-selfhost
+
+      - name: Deploy to EC2
+        run: |
+          ssh -i plane.pem ec2-user@100.24.85.118 "
+          cd /home/ec2-user/plane-selfhost &&
+          docker-compose pull &&
+          docker-compose up -d
+          "
