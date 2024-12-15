@@ -1,0 +1,29 @@
+name: Deploy Plane
+on:
+push:
+branches:
+- main
+jobs:
+deploy:
+runs-on: ubuntu-latest
+steps:
+# Step 1: Checkout kode dari repository
+- name: Checkout Code
+uses: actions/checkout@v2
+# Step 2: Konfigurasi Key SSH untuk koneksi ke EC2
+- name: Set up SSH
+run: |
+echo "${{ secrets.EC2_SSH_KEY }}" > plane.pem
+chmod 600 key.pem
+# Step 3: Kirim file ke server EC2
+- name: Upload Files to EC2
+run: |
+scp -i key.pem -r . ec2-user@100.24.85.118:/home/ec2-user/plane-selfhost
+# Step 4: Jalankan perintah di EC2 untuk deploy
+- name: Deploy to EC2
+run: |
+ssh -i key.pem ec2-user@100.24.85.118 "
+cd /home/ec2-user/plane-selfhost &&
+docker-compose pull &&
+docker-compose up -d
+"
