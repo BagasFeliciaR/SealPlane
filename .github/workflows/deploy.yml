@@ -1,4 +1,5 @@
 name: Deploy Plane
+
 on:
   push:
     branches:
@@ -7,29 +8,29 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    
-    - name: Set up SSH
-      run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > plane.pem
-        chmod 600 plane.pem
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
-    - name: Add EC2 Host to Known Hosts
-      run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H 100.24.85.118 >> ~/.ssh/known_hosts
-        chmod 644 ~/.ssh/known_hosts
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > plane.pem
+          chmod 600 plane.pem  # Ensure the file name is the same as mentioned in the next step
 
-    - name: Upload Files to EC2
-      run: |
-        scp -i plane.pem -r . ec2-user@100.24.85.118:/home/ec2-user/plane-selfhost
-    
-    - name: Deploy to EC2
-      run: |
-        ssh -i plane.pem ec2-user@100.24.85.118 "
-        cd /home/ec2-user/plane-selfhost &&
-        docker-compose pull &&
-        docker-compose up -d
-        "
+      - name: Add SSH Key to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 100.24.85.118 >> ~/.ssh/known_hosts
+
+      - name: Upload Files to EC2
+        run: |
+          scp -i plane.pem -r . ec2-user@100.24.85.118:/home/ec2-user/plane-selfhost
+
+      - name: Deploy to EC2
+        run: |
+          ssh -i plane.pem ec2-user@100.24.85.118 "
+          cd /home/ec2-user/plane-selfhost &&
+          docker-compose pull &&
+          docker-compose up -d
+          "
